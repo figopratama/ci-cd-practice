@@ -1,0 +1,23 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+
+      - name: ✅ Validate HTML
+        run: |
+          echo "Checking if index.html exists..."
+          test -f index.html && echo "index.html found!" || exit 1
+
+      - name: 🎉 Pipeline Complete
+        run: echo "Your CI pipeline ran successfully!"
