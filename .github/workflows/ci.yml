@@ -1,44 +1,52 @@
 name: CI/CD Pipeline
 
+# Pipeline fires on teo events
 on:
   push:
-    branches: [ main ]
+    branches: [ main ] # Event 1: Directly push to main
   pull_request:
-    branches: [ main ]
+    branches: [ main ] # Event 2: Someone open Pull request targeting main (for team environtment)
 
+# Tell github what pipeline are allowed to do
+# Security feature — pipelines can only do what you explicitly permit.
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# To prevent two developments is running at the same time and overwriting each other.
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
+
+
 jobs:
+  # Job 1: Build
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 Checkout code
+      - name: 📥 Checkout code  # Download code
         uses: actions/checkout@v4
 
-      - name: ✅ Validate HTML
+      - name: ✅ Validate HTML  # Check files existence
         run: |
           echo "Checking if index.html exists..."
           test -f index.html && echo "index.html found!" || exit 1
 
-      - name: 📦 Upload artifact
+      - name: 📦 Upload artifact  # PAckage for deployment
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
 
+  # Job 2: Deploy
   deploy:
-    needs: build
+    needs: build  # Only run if job Build is succeeds
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: 🚀 Deploy to GitHub Pages
+      - name: 🚀 Deploy to GitHub Pages   # Deploy to github pages
         id: deployment
         uses: actions/deploy-pages@v4
