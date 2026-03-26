@@ -1,6 +1,5 @@
 name: CI/CD Pipeline
-
-# Pipeline fires on teo events
+# Pipeline fires on two events
 on:
   push:
     branches: [ main ] # Event 1: Directly push to main
@@ -14,16 +13,33 @@ permissions:
   pages: write
   id-token: write
 
-# To prevent two developments is running at the same time and overwriting each other.
+# To prevent two deployments is running at the same time and overwriting each other.
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
-
-
 jobs:
-  # Job 1: Build
+  # Job 1: Test
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code  # Download code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js  # Prepare Node.js environment on the Ubuntu server
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Install dependencies  # Install Jest and other packages from package.json
+        run: npm install
+
+      - name: 🧪 Run tests  # Run all .test.js files, pipeline stops here if any test fails
+        run: npm test
+
+  # Job 2: Build
   build:
+    needs: test  # Only run if job Test succeeds
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout code  # Download code
@@ -34,19 +50,19 @@ jobs:
           echo "Checking if index.html exists..."
           test -f index.html && echo "index.html found!" || exit 1
 
-      - name: 📦 Upload artifact  # PAckage for deployment
+      - name: 📦 Upload artifact  # Package for deployment
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
 
-  # Job 2: Deploy
+  # Job 3: Deploy
   deploy:
-    needs: build  # Only run if job Build is succeeds
+    needs: build  # Only run if job Build succeeds
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: 🚀 Deploy to GitHub Pages   # Deploy to github pages
+      - name: 🚀 Deploy to GitHub Pages  # Deploy to github pages
         id: deployment
         uses: actions/deploy-pages@v4
