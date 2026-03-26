@@ -32,7 +32,10 @@ jobs:
           node-version: '20'
 
       - name: 📦 Install dependencies  # Install Jest and other packages from package.json
-        run: npm install
+        run: npm ci
+
+      # - name: 🔧 Fix permissions (debugging) #  To give deeper DevOps debuggin
+      #   run: chmod +x node_modules/.bin/jest
 
       - name: 🧪 Run tests  # Run all .test.js files, pipeline stops here if any test fails
         run: npm test
