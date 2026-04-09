@@ -61,6 +61,7 @@ jobs:
   # Job 3: Deploy
   deploy:
     needs: build  # Only run if job Build succeeds
+    if: github.event_name == 'push'  # Only deploy on push to main, not on pull requests
     runs-on: ubuntu-latest
     environment:
       name: github-pages
